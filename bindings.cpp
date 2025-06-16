@@ -30,14 +30,20 @@ PYBIND11_MODULE(puyo_core, m) {
   py::class_<ChainInfo>(m, "ChainInfo")
     .def(py::init<>())
     .def_readwrite("chain_count", &ChainInfo::chain_count)
-    .def_readwrite("group_size", &ChainInfo::group_size)
+    .def_readwrite("group_sizes", &ChainInfo::group_sizes)
     .def_readwrite("colors", &ChainInfo::colors)
-    .def_readwrite("tottal_erased", &ChainInfo::total_erased)
+    .def_readwrite("total_erased", &ChainInfo::total_erased)
     .def_readwrite("erased", &ChainInfo::erased)
     .def("__repr__", [](const ChainInfo &info) {
+      std::string colors_str = "{";
+      for (const auto& c : info.colors) colors_str += std::to_string(static_cast<int>(c)) + ",";
+      colors_str += "}";
+      std::string group_sizes_str = "[";
+      for (const auto& g : info.group_sizes) group_sizes_str += std::to_string(g) + ",";
+      group_sizes_str += "]";
       return "<ChainInfo chain_count=" + std::to_string(info.chain_count)
-        + " group_size=" + std::to_string(info.group_size)
-        + " colors=" + std::to_string(info.colors)
+        + " group_sizes=" + group_sizes_str
+        + " colors=" + colors_str
         + " total_erased=" + std::to_string(info.total_erased)
         + " erased=" + (info.erased ? "true" : "false") + ">";
     });
@@ -55,8 +61,8 @@ PYBIND11_MODULE(puyo_core, m) {
         + " y=" + std::to_string(tsumo.y)
         + " dx=" + std::to_string(tsumo.dx)
         + " dy=" + std::to_string(tsumo.dy)
-        + " center=" + std::to_string(tsumo.center)
-        + " sub=" + std::to_string(tsumo.sub) + ">";
+        + " center=" + std::to_string(static_cast<int>(tsumo.center))
+        + " sub=" + std::to_string(static_cast<int>(tsumo.sub)) + ">";
     });
 
   // --- Field class ---
@@ -100,6 +106,6 @@ PYBIND11_MODULE(puyo_core, m) {
     py::class_<AI, std::shared_ptr<AI>>(m, "AI")
       .def("decide", &AI::decide, py::arg("field"));
 
-    m.def("create_random_AI", &Create_random_AI, py::return_value_policy::take_ownership, 
+    m.def("create_random_AI", &puyo::create_random_AI, py::return_value_policy::take_ownership, 
           "Create a random AI instance that makes random decisions.");
 }
