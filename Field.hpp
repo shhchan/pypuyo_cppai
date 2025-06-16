@@ -7,7 +7,9 @@
 
 namespace puyo {
 	class Field {
-	private:
+	public:
+		Field(int h = 14, int w = 6);
+
 		int height, width;
 		std::vector<std::vector<CellType>> grid;
 		std::array<std::pair<CellType, CellType>, 2> next_tsumos;
@@ -19,9 +21,6 @@ namespace puyo {
 		int score;
 		int current_chain_size;
 		bool game_over;
-
-	public:
-		Field(int h = 14, int w = 6);
 
 		void set_cell(int x, int y, CellType type);
 		CellType get_cell(int x, int y) const;

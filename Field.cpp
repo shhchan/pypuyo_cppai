@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include "Cell.hpp"
+//#include "Cell.hpp"
 
 namespace puyo {
 	Field::Field(int h, int w) :
@@ -425,7 +425,7 @@ namespace puyo {
 		current_chain_size = chain_count;
 	}
 
-	void Field::draw(bool should_show_ghost) const {
+/* 	void Field::draw(bool should_show_ghost) const {
 		// Calc ghost
 		auto ghost = get_ghost_position();
 		int gcx = ghost.first.first;
@@ -506,5 +506,5 @@ namespace puyo {
 		// Draw score
 		std::cout << "\n" << std::setfill('0') << std::setw(8) << score << std::endl;
 		std::cout << current_chain_size << "連鎖" << std::endl;
-	}
+	} */
 }
