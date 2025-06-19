@@ -88,6 +88,7 @@ PYBIND11_MODULE(puyo_core, m) {
     .def("get_width", &Field::get_width)
     .def("get_grid_cell", &Field::get_grid_cell, py::arg("x"), py::arg("y"))
     .def("get_active_tsumo", &Field::get_active_tsumo)
+    .def("get_next_tsumos", &Field::get_next_tsumos)
     .def("__repr__", [](const Field &field) {
       return "<Field height=" + std::to_string(field.get_height())
         + " width=" + std::to_string(field.get_width()) + ">";
