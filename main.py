@@ -98,21 +98,21 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_a:
                     field.move_active_tsumo_left()
-                elif event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_d:
                     field.move_active_tsumo_right()
-                elif event.key == pygame.K_DOWN:
+                elif event.key == pygame.K_w:
                     field.drop_active_tsumo()
-                elif event.key == pygame.K_z:
+                elif event.key == pygame.K_DOWN:
                     field.rotate_active_tsumo_left()
-                elif event.key == pygame.K_x:
+                elif event.key == pygame.K_RIGHT:
                     field.rotate_active_tsumo_right()
         # 自動落下
-        fall_timer += 1
-        if fall_timer >= fall_interval:
-            field.drop_active_tsumo()
-            fall_timer = 0
+        # fall_timer += 1
+        # if fall_timer >= fall_interval:
+            # field.drop_active_tsumo()
+            # fall_timer = 0
         screen.fill((0, 0, 0))
         draw_field(screen, field)
         draw_active_tsumo(screen, field)
