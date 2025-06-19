@@ -77,9 +77,31 @@ def draw_active_tsumo(screen, field):
                     (x * CELL_SIZE, (y + VISIBLE_TOP_MARGIN) * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                 )
 
+def draw_nexts(screen, field):
+    # ネクスト・ネクネクをフィールド右側に描画
+    nexts = field.get_next_tsumos()  # get_next_tsumos()で取得
+    base_x = FIELD_WIDTH * CELL_SIZE + 16  # フィールド右端+余白
+    base_y = VISIBLE_TOP_MARGIN * CELL_SIZE + 32
+    for i, (center, sub) in enumerate(nexts):
+        # 上がsub, 下がcenterとして縦に描画
+        y_offset = base_y + i * 3 * CELL_SIZE
+        for j, color in enumerate([sub, center]):
+            color_name = CELLTYPE_MAP.get(int(color), None)
+            if color_name:
+                pygame.draw.rect(
+                    screen,
+                    COLOR_MAP[color_name],
+                    (base_x, y_offset + j * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                )
+        # ラベル
+        font = pygame.font.SysFont(None, 24)
+        label = font.render("NEXT" if i == 0 else "NEXT2", True, (255,255,255))
+        screen.blit(label, (base_x, y_offset - 24))
+
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    # 画面サイズをネクスト表示分拡張
+    screen = pygame.display.set_mode((SCREEN_WIDTH + 80, SCREEN_HEIGHT))
     pygame.display.set_caption('PuyoPuyo')
     clock = pygame.time.Clock()
     field = puyo_core.Field(FIELD_HEIGHT, FIELD_WIDTH)
@@ -123,6 +145,7 @@ def main():
         screen.fill((0, 0, 0))
         draw_field(screen, field)
         draw_active_tsumo(screen, field)
+        draw_nexts(screen, field)
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()

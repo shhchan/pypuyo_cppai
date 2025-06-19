@@ -47,6 +47,7 @@ namespace puyo {
 		int get_width() const;
 		CellType get_grid_cell(int x, int y) const;
 		ActiveTsumo get_active_tsumo() const;
+		std::array<std::pair<CellType, CellType>, 2> get_next_tsumos() const;
 
 	private:
 		std::pair<CellType, CellType> generate_random_tsumo();

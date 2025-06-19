@@ -425,6 +425,11 @@ namespace puyo {
 		current_chain_size = chain_count;
 	}
 
+	// next_tsumosのgetter
+	std::array<std::pair<CellType, CellType>, 2> Field::get_next_tsumos() const {
+		return next_tsumos;
+	}
+
 /* 	void Field::draw(bool should_show_ghost) const {
 		// Calc ghost
 		auto ghost = get_ghost_position();
