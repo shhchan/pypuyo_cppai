@@ -108,6 +108,17 @@ def main():
         # 自動落下機能を削除
         if drop_flag:
             field.drop_active_tsumo()
+            # 1連鎖ずつ描画しながら連鎖処理
+            while True:
+                chain_info = field.analyze_and_erase_chains()
+                if not getattr(chain_info, 'erased', False):
+                    break
+                field.apply_gravity()
+                # 1連鎖ごとに描画・少し待つ
+                screen.fill((0, 0, 0))
+                draw_field(screen, field)
+                pygame.display.flip()
+                pygame.time.wait(800)  # 400ms待機
             field.generate_next_tsumo()  # 操作ぷよ・ネクスト・ネクネクをC++側で更新
         screen.fill((0, 0, 0))
         draw_field(screen, field)
