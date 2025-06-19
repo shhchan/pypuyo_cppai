@@ -79,7 +79,7 @@ PYBIND11_MODULE(puyo_core, m) {
     .def("drop_active_tsumo", &Field::drop_active_tsumo)
     .def("get_ghost_position", &Field::get_ghost_position)
     .def("analyze_and_erase_chains", &Field::analyze_and_erase_chains, py::arg("chain_count") = 1)
-    .def("apply_grabity", &Field::apply_gravity)
+    .def("apply_gravity", &Field::apply_gravity)
     .def("calculate_score", &Field::calculate_score, py::arg("chain_info"))
     .def("update_score", &Field::update_score, py::arg("chain_info"))
     .def("set_current_chain_size", &Field::set_current_chain_size, py::arg("chain_count"))
