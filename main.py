@@ -60,11 +60,6 @@ def draw_field(screen, field):
             if color_name:
                 pygame.draw.rect(screen, COLOR_MAP[color_name], (x*CELL_SIZE, (y+VISIBLE_TOP_MARGIN)*CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
-def spawn_active_tsumo(field):
-    center = random.choice(list(REVERSE_CELLTYPE_MAP.values())[:4])
-    sub = random.choice(list(REVERSE_CELLTYPE_MAP.values())[:4])
-    field.set_active_tsumo(center, sub, x=2, y=0)
-
 def draw_active_tsumo(screen, field):
     tsumo = field.get_active_tsumo()
     for dx, dy, color in [
@@ -73,14 +68,13 @@ def draw_active_tsumo(screen, field):
     ]:
         x = tsumo.x + dx
         y = tsumo.y + dy
-        # 描画位置を1マス上にずらす（+1 → -1）
         if 0 <= x < FIELD_WIDTH and y >= -VISIBLE_TOP_MARGIN - 1 and y < FIELD_HEIGHT:
             color_name = CELLTYPE_MAP.get(int(color), None)
             if color_name:
                 pygame.draw.rect(
                     screen,
                     COLOR_MAP[color_name],
-                    (x * CELL_SIZE, (y + VISIBLE_TOP_MARGIN - 1) * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                    (x * CELL_SIZE, (y + VISIBLE_TOP_MARGIN) * CELL_SIZE, CELL_SIZE, CELL_SIZE),
                 )
 
 def main():
@@ -89,11 +83,14 @@ def main():
     pygame.display.set_caption('PuyoPuyo')
     clock = pygame.time.Clock()
     field = puyo_core.Field(FIELD_HEIGHT, FIELD_WIDTH)
-    spawn_active_tsumo(field)
-    fall_timer = 0
-    fall_interval = 30  # フレーム数で落下間隔
+
+    # C++側のgenerate_next_tsumoでネクスト・ネクネク・操作ぷよを管理
+    field.generate_next_tsumo()  # ネクスト・ネクネク初期化
+    field.generate_next_tsumo()  # 操作ぷよをセット
+
     running = True
     while running:
+        drop_flag = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -103,16 +100,15 @@ def main():
                 elif event.key == pygame.K_d:
                     field.move_active_tsumo_right()
                 elif event.key == pygame.K_w:
-                    field.drop_active_tsumo()
+                    drop_flag = True
                 elif event.key == pygame.K_DOWN:
                     field.rotate_active_tsumo_left()
                 elif event.key == pygame.K_RIGHT:
                     field.rotate_active_tsumo_right()
-        # 自動落下
-        # fall_timer += 1
-        # if fall_timer >= fall_interval:
-            # field.drop_active_tsumo()
-            # fall_timer = 0
+        # 自動落下機能を削除
+        if drop_flag:
+            field.drop_active_tsumo()
+            field.generate_next_tsumo()  # 操作ぷよ・ネクスト・ネクネクをC++側で更新
         screen.fill((0, 0, 0))
         draw_field(screen, field)
         draw_active_tsumo(screen, field)
