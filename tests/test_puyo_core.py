@@ -2,7 +2,7 @@ import sys
 import os
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-build_dir = os.path.join(script_dir, 'build')
+build_dir = os.path.join(script_dir, '../build')
 sys.path.append(build_dir)
 
 import puyo_core

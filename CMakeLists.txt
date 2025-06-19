@@ -12,9 +12,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 # ソースファイルのリスト
 set(SOURCES
-    AI.cpp
-    bindings.cpp
-    Field.cpp
+    src/AI.cpp
+    src/bindings.cpp
+    src/Field.cpp
 )
 
 # pybind11をサブモジュールとして追加した場合の設定
@@ -23,8 +23,8 @@ set(SOURCES
 find_package(pybind11 CONFIG REQUIRED)
 
 # Pythonモジュールとしてビルド
-pybind11_add_module(puyo_core bindings.cpp AI.cpp Field.cpp)
-target_include_directories(puyo_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+pybind11_add_module(puyo_core src/bindings.cpp src/AI.cpp src/Field.cpp)
+target_include_directories(puyo_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # 静的ライブラリを作成（必要なら残す）
 # add_library(pypuyo_cppai STATIC ${SOURCES})
