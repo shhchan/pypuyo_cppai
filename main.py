@@ -20,8 +20,10 @@ CELL_SIZE = 32
 FIELD_WIDTH = 6
 FIELD_HEIGHT = 14
 VISIBLE_TOP_MARGIN = 2  # 上部に2行分余裕を持たせて表示
+# ステータス表示用の高さを2行分確保（例: 80px）
+STATUS_BAR_HEIGHT = 80
 SCREEN_WIDTH = CELL_SIZE * FIELD_WIDTH
-SCREEN_HEIGHT = CELL_SIZE * (FIELD_HEIGHT + VISIBLE_TOP_MARGIN)
+SCREEN_HEIGHT = CELL_SIZE * (FIELD_HEIGHT + VISIBLE_TOP_MARGIN) + STATUS_BAR_HEIGHT
 FPS = 60
 PUYO_COLORS = ["red", "green", "blue", "yellow"]
 COLOR_MAP = {
@@ -98,6 +100,19 @@ def draw_nexts(screen, field):
         label = font.render("NEXT" if i == 0 else "NEXT2", True, (255,255,255))
         screen.blit(label, (base_x, y_offset - 24))
 
+def draw_status(screen, field):
+    # スコアと連鎖数をフィールド下部に2行で表示
+    font = pygame.font.SysFont(None, 32)
+    score = field.get_score()
+    chain = field.get_current_chain_size()
+    score_label = font.render(f"SCORE: {score}", True, (255, 255, 255))
+    chain_label = font.render(f"CHAIN: {chain}", True, (255, 255, 255))
+    base_x = 16
+    # ステータスバーの中央寄せ（フィールド下端＋余白）
+    base_y = (FIELD_HEIGHT + VISIBLE_TOP_MARGIN) * CELL_SIZE + 16
+    screen.blit(score_label, (base_x, base_y))
+    screen.blit(chain_label, (base_x, base_y + 36))
+
 def main():
     pygame.init()
     # 画面サイズをネクスト表示分拡張
@@ -130,22 +145,33 @@ def main():
         # 自動落下機能を削除
         if drop_flag:
             field.drop_active_tsumo()
+            chain_count = 0  # 連鎖数を初期化
             # 1連鎖ずつ描画しながら連鎖処理
             while True:
-                chain_info = field.analyze_and_erase_chains()
+                chain_info = field.analyze_and_erase_chains(chain_count)
                 if not getattr(chain_info, 'erased', False):
                     break
+                # 連鎖が発生した場合は連鎖数を更新
+                chain_count += 1
+                field.set_current_chain_size(chain_count)
+                # スコア計算
+                field.update_score(chain_info)
                 field.apply_gravity()
                 # 1連鎖ごとに描画・少し待つ
                 screen.fill((0, 0, 0))
                 draw_field(screen, field)
+                draw_nexts(screen, field)
+                draw_status(screen, field)
                 pygame.display.flip()
                 pygame.time.wait(800)  # 400ms待機
             field.generate_next_tsumo()  # 操作ぷよ・ネクスト・ネクネクをC++側で更新
+        # 連鎖が終了したら field の連鎖数をリセット（本当は field のメンバに current_chain_size があるので，それを使うようにすべき）
+        field.set_current_chain_size(0)
         screen.fill((0, 0, 0))
         draw_field(screen, field)
         draw_active_tsumo(screen, field)
         draw_nexts(screen, field)
+        draw_status(screen, field)
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()

@@ -39,6 +39,8 @@ namespace puyo {
 
 		int calculate_score(const ChainInfo&);
 		void update_score(const ChainInfo&);
+		int get_score() const;
+		int get_current_chain_size() const;
 		void set_current_chain_size(int);
 		void draw(bool should_show_ghost = true) const;
 		void generate_next_tsumo();

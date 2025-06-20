@@ -286,7 +286,6 @@ namespace puyo {
 
 	ChainInfo Field::analyze_and_erase_chains(int chain_count) {
 		ChainInfo chain_info;
-		chain_info.chain_count = chain_count;
 
 		bool erased = false;
 		std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
@@ -351,6 +350,8 @@ namespace puyo {
 		}
 
 		chain_info.erased = erased;
+
+		chain_info.chain_count = chain_info.erased ? chain_count + 1 : chain_count;
 
 		return chain_info;
 	}
@@ -419,6 +420,15 @@ namespace puyo {
 
 	void Field::update_score(const ChainInfo& chain_info) {
 		score += calculate_score(chain_info);
+	}
+
+	// score の getter
+	int Field::get_score() const {
+		return score;
+	}
+	// current_chain_size の getter
+	int Field::get_current_chain_size() const {
+		return current_chain_size;
 	}
 
 	void Field::set_current_chain_size(int chain_count) {

@@ -82,6 +82,8 @@ PYBIND11_MODULE(puyo_core, m) {
     .def("apply_gravity", &Field::apply_gravity)
     .def("calculate_score", &Field::calculate_score, py::arg("chain_info"))
     .def("update_score", &Field::update_score, py::arg("chain_info"))
+    .def("get_score", &Field::get_score)
+    .def("get_current_chain_size", &Field::get_current_chain_size)
     .def("set_current_chain_size", &Field::set_current_chain_size, py::arg("chain_count"))
     .def("generate_next_tsumo", &Field::generate_next_tsumo)
     .def("get_height", &Field::get_height)
