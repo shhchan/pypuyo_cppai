@@ -296,7 +296,7 @@ namespace puyo {
 		const int dx[4] = { 1, 0, -1, 0 };
 		const int dy[4] = { 0, 1, 0, -1 };
 
-		for (int y = 0; y < height; y++) {
+		for (int y = 2; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				// 探索不要な箇所はスキップ
 				if (visited[y][x] || grid[y][x] == CellType::EMPTY || grid[y][x] == CellType::GARBAGE) {
@@ -320,13 +320,13 @@ namespace puyo {
 						int nx = cx + dx[dir];
 						int ny = cy + dy[dir];
 						// 通常のぷよ
-						if (nx >= 0 && nx < width && ny >= 0 && ny < height
+						if (nx >= 0 && nx < width && ny >= 2 && ny < height
 							&& !visited[ny][nx] && grid[ny][nx] == target_type) {
 							visited[ny][nx] = true;
 							stack.emplace_back(nx, ny);
 						}
 						// おじゃまぷよ
-						else if (nx >= 0 && nx < width && ny >= 0 && ny < height
+						else if (nx >= 0 && nx < width && ny >= 2 && ny < height
 							&& !visited[ny][nx] && grid[ny][nx] == CellType::GARBAGE) {
 							visited[ny][nx] = true;
 							garbages.push_back({ nx, ny });
