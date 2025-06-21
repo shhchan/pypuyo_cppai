@@ -137,12 +137,21 @@ def draw_status(screen, field, is_ai_mode):
     screen.blit(chain_label, (base_x, base_y + 36))
     screen.blit(mode_label, (base_x, base_y + 72))
 
-def render_all(screen, field, is_ai_mode):
+def draw(screen, field, is_ai_mode, targets=None):
     screen.fill((0, 0, 0))
-    draw_field(screen, field)
-    draw_active_tsumo(screen, field)
-    draw_nexts(screen, field)
-    draw_status(screen, field, is_ai_mode)
+    draw_funcs = {
+        "field": lambda: draw_field(screen, field),
+        "active_tsumo": lambda: draw_active_tsumo(screen, field),
+        "nexts": lambda: draw_nexts(screen, field),
+        "status": lambda: draw_status(screen, field, is_ai_mode),
+    }
+    if targets is None:
+        for func in draw_funcs.values():
+            func()
+    else:
+        for key in targets:
+            if key in draw_funcs:
+                draw_funcs[key]()
     pygame.display.flip()
 
 def main():
@@ -186,7 +195,7 @@ def main():
             # rotation: 0=上, 1=右, 2=下, 3=左
             for _ in range(move.rotation):
                 field.rotate_active_tsumo_right()
-                render_all(screen, field, is_ai_mode)
+                draw(screen, field, is_ai_mode)
                 pygame.time.wait(100)
             # x座標を合わせる（最大FIELD_WIDTH回まで）
             max_move = FIELD_WIDTH
@@ -194,12 +203,12 @@ def main():
             while field.get_active_tsumo().x < move.target_x and move_count < max_move:
                 field.move_active_tsumo_right()
                 move_count += 1
-                render_all(screen, field, is_ai_mode)
+                draw(screen, field, is_ai_mode)
                 pygame.time.wait(100)
             while field.get_active_tsumo().x > move.target_x and move_count < max_move:
                 field.move_active_tsumo_left()
                 move_count += 1
-                render_all(screen, field, is_ai_mode)
+                draw(screen, field, is_ai_mode)
                 pygame.time.wait(100)
             drop_flag = True
         # 落下処理
@@ -217,12 +226,12 @@ def main():
                 # スコア計算
                 field.update_score(chain_info)
                 field.apply_gravity()
-                render_all(screen, field, is_ai_mode)
+                draw(screen, field, is_ai_mode, targets=["field", "nexts", "status"])
                 pygame.time.wait(800)
             field.generate_next_tsumo()  # 操作ぷよ・ネクスト・ネクネクをC++側で更新
         # 連鎖が終了したら field の連鎖数をリセット
         field.set_current_chain_size(0)
-        render_all(screen, field, is_ai_mode)
+        draw(screen, field, is_ai_mode)
         clock.tick(FPS)
     pygame.quit()
 
