@@ -137,6 +137,14 @@ def draw_status(screen, field, is_ai_mode):
     screen.blit(chain_label, (base_x, base_y + 36))
     screen.blit(mode_label, (base_x, base_y + 72))
 
+def render_all(screen, field, is_ai_mode):
+    screen.fill((0, 0, 0))
+    draw_field(screen, field)
+    draw_active_tsumo(screen, field)
+    draw_nexts(screen, field)
+    draw_status(screen, field, is_ai_mode)
+    pygame.display.flip()
+
 def main():
     pygame.init()
     # 画面サイズをネクスト表示分拡張
@@ -178,13 +186,7 @@ def main():
             # rotation: 0=上, 1=右, 2=下, 3=左
             for _ in range(move.rotation):
                 field.rotate_active_tsumo_right()
-                # 操作途中も描画
-                screen.fill((0, 0, 0))
-                draw_field(screen, field)
-                draw_active_tsumo(screen, field)
-                draw_nexts(screen, field)
-                draw_status(screen, field, is_ai_mode)
-                pygame.display.flip()
+                render_all(screen, field, is_ai_mode)
                 pygame.time.wait(100)
             # x座標を合わせる（最大FIELD_WIDTH回まで）
             max_move = FIELD_WIDTH
@@ -192,24 +194,12 @@ def main():
             while field.get_active_tsumo().x < move.target_x and move_count < max_move:
                 field.move_active_tsumo_right()
                 move_count += 1
-                # 操作途中も描画
-                screen.fill((0, 0, 0))
-                draw_field(screen, field)
-                draw_active_tsumo(screen, field)
-                draw_nexts(screen, field)
-                draw_status(screen, field, is_ai_mode)
-                pygame.display.flip()
+                render_all(screen, field, is_ai_mode)
                 pygame.time.wait(100)
             while field.get_active_tsumo().x > move.target_x and move_count < max_move:
                 field.move_active_tsumo_left()
                 move_count += 1
-                # 操作途中も描画
-                screen.fill((0, 0, 0))
-                draw_field(screen, field)
-                draw_active_tsumo(screen, field)
-                draw_nexts(screen, field)
-                draw_status(screen, field, is_ai_mode)
-                pygame.display.flip()
+                render_all(screen, field, is_ai_mode)
                 pygame.time.wait(100)
             drop_flag = True
         # 落下処理
@@ -227,22 +217,12 @@ def main():
                 # スコア計算
                 field.update_score(chain_info)
                 field.apply_gravity()
-                # 1連鎖ごとに描画・少し待つ
-                screen.fill((0, 0, 0))
-                draw_field(screen, field)
-                draw_nexts(screen, field)
-                draw_status(screen, field, is_ai_mode)
-                pygame.display.flip()
-                pygame.time.wait(800)  # 400ms待機
+                render_all(screen, field, is_ai_mode)
+                pygame.time.wait(800)
             field.generate_next_tsumo()  # 操作ぷよ・ネクスト・ネクネクをC++側で更新
-        # 連鎖が終了したら field の連鎖数をリセット（本当は field のメンバに current_chain_size があるので，それを使うようにすべき）
+        # 連鎖が終了したら field の連鎖数をリセット
         field.set_current_chain_size(0)
-        screen.fill((0, 0, 0))
-        draw_field(screen, field)
-        draw_active_tsumo(screen, field)
-        draw_nexts(screen, field)
-        draw_status(screen, field, is_ai_mode)
-        pygame.display.flip()
+        render_all(screen, field, is_ai_mode)
         clock.tick(FPS)
     pygame.quit()
 
