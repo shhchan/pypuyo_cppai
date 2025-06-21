@@ -178,18 +178,39 @@ def main():
             # rotation: 0=上, 1=右, 2=下, 3=左
             for _ in range(move.rotation):
                 field.rotate_active_tsumo_right()
-                pygame.time.wait(100)  # 回転ごとに少し待つ
+                # 操作途中も描画
+                screen.fill((0, 0, 0))
+                draw_field(screen, field)
+                draw_active_tsumo(screen, field)
+                draw_nexts(screen, field)
+                draw_status(screen, field, is_ai_mode)
+                pygame.display.flip()
+                pygame.time.wait(100)
             # x座標を合わせる（最大FIELD_WIDTH回まで）
             max_move = FIELD_WIDTH
             move_count = 0
             while field.get_active_tsumo().x < move.target_x and move_count < max_move:
                 field.move_active_tsumo_right()
                 move_count += 1
-                pygame.time.wait(100)  # 移動ごとに少し待つ
+                # 操作途中も描画
+                screen.fill((0, 0, 0))
+                draw_field(screen, field)
+                draw_active_tsumo(screen, field)
+                draw_nexts(screen, field)
+                draw_status(screen, field, is_ai_mode)
+                pygame.display.flip()
+                pygame.time.wait(100)
             while field.get_active_tsumo().x > move.target_x and move_count < max_move:
                 field.move_active_tsumo_left()
                 move_count += 1
-                pygame.time.wait(100)  # 移動ごとに少し待つ
+                # 操作途中も描画
+                screen.fill((0, 0, 0))
+                draw_field(screen, field)
+                draw_active_tsumo(screen, field)
+                draw_nexts(screen, field)
+                draw_status(screen, field, is_ai_mode)
+                pygame.display.flip()
+                pygame.time.wait(100)
             drop_flag = True
         # 落下処理
         if drop_flag:
