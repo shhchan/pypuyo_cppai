@@ -58,6 +58,24 @@ REVERSE_CELLTYPE_MAP = {
 def draw_field(screen, field):
     for y in range(FIELD_HEIGHT):
         for x in range(FIELD_WIDTH):
+            # 窒息点(3列目12段目, x=2, y=2)に赤いバツ印をセルいっぱいに描画
+            if x == 2 and y == 2:
+                cx = x * CELL_SIZE
+                cy = (y + VISIBLE_TOP_MARGIN) * CELL_SIZE
+                margin = int(CELL_SIZE * 0.18)
+                pygame.draw.line(
+                    screen, (255, 0, 0),
+                    (cx + margin, cy + margin),
+                    (cx + CELL_SIZE - margin, cy + CELL_SIZE - margin),
+                    width=max(2, CELL_SIZE // 8)
+                )
+                pygame.draw.line(
+                    screen, (255, 0, 0),
+                    (cx + CELL_SIZE - margin, cy + margin),
+                    (cx + margin, cy + CELL_SIZE - margin),
+                    width=max(2, CELL_SIZE // 8)
+                )
+                continue
             cell = field.get_cell(x, y)
             color_name = CELLTYPE_MAP.get(int(cell), None)
             if color_name:
@@ -232,6 +250,36 @@ def main():
         # 連鎖が終了したら field の連鎖数をリセット
         field.set_current_chain_size(0)
         draw(screen, field, is_ai_mode)
+        # 窒息判定
+        if field.is_game_over():
+            # シンプルなゲームオーバー画面を3行で表示
+            font = pygame.font.SysFont(None, 36)
+            messages = ["GAME OVER!", "R: Retry", "Q: Quit"]
+            screen.fill((0, 0, 0))
+            total_height = sum(font.size(msg)[1] for msg in messages) + 16  # 行間8px
+            start_y = SCREEN_HEIGHT // 2 - total_height // 2
+            for i, msg in enumerate(messages):
+                text_surface = font.render(msg, True, (255, 0, 0))
+                x = (SCREEN_WIDTH + 80) // 2 - text_surface.get_width() // 2
+                y = start_y + i * (font.get_height() + 8)
+                screen.blit(text_surface, (x, y))
+            pygame.display.flip()
+            waiting_for_retry = True
+            while waiting_for_retry:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        waiting_for_retry = False
+                        running = False
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_r:
+                            field = puyo_core.Field(FIELD_HEIGHT, FIELD_WIDTH)
+                            field.generate_next_tsumo()
+                            field.generate_next_tsumo()  # 操作ぷよをセット
+                            waiting_for_retry = False
+                            is_ai_mode = False
+                        elif event.key == pygame.K_q:
+                            waiting_for_retry = False
+                            running = False
         clock.tick(FPS)
     pygame.quit()
 

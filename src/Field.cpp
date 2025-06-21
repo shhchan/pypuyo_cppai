@@ -492,6 +492,10 @@ namespace puyo {
 		return false;
 	}
 
+	bool Field::is_game_over() const {
+		return get_cell(2, 2) != CellType::EMPTY ? true : false;
+	}
+
 /* 	void Field::draw(bool should_show_ghost) const {
 		// Calc ghost
 		auto ghost = get_ghost_position();

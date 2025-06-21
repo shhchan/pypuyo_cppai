@@ -55,6 +55,8 @@ namespace puyo {
 		// 追加: ぷよ配置可能判定
 		bool can_place(int x, int r) const;
 
+		bool is_game_over() const;
+
 	private:
 		std::pair<CellType, CellType> generate_random_tsumo();
 		int get_chain_bonus(int);

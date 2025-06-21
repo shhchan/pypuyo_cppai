@@ -94,6 +94,7 @@ PYBIND11_MODULE(puyo_core, m) {
     .def("get_active_tsumo", &Field::get_active_tsumo)
     .def("get_next_tsumos", &Field::get_next_tsumos)
     .def("can_place", &Field::can_place, py::arg("x"), py::arg("r"))
+    .def("is_game_over", &Field::is_game_over)
     .def("__repr__", [](const Field &field) {
       return "<Field height=" + std::to_string(field.get_height())
         + " width=" + std::to_string(field.get_width()) + ">";
