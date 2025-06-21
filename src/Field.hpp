@@ -51,6 +51,9 @@ namespace puyo {
 		ActiveTsumo get_active_tsumo() const;
 		std::array<std::pair<CellType, CellType>, 2> get_next_tsumos() const;
 
+		// 追加: ぷよ配置可能判定
+		bool can_place(int x, int r) const;
+
 	private:
 		std::pair<CellType, CellType> generate_random_tsumo();
 		int get_chain_bonus(int);
