@@ -359,7 +359,7 @@ namespace puyo {
 	void Field::apply_gravity(void) {
 		for (int x = 0; x < width; x++) {
 			int write_y = height - 1;
-			for (int y = height - 1; y >= 0; y--) {
+			for (int y = height - 1; y >= 1; y--) {
 				if (grid[y][x] != CellType::EMPTY) {
 					grid[write_y][x] = grid[y][x];
 					if (write_y != y) {
