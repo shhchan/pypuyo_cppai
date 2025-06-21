@@ -61,7 +61,7 @@ namespace puyo {
 	}
 
 	void Field::rotate_active_tsumo_left(void) {
-		active_tsumo.rotation = (active_tsumo.rotation + 1) % 4;
+		active_tsumo.rotation = (active_tsumo.rotation + 3) % 4;
 		// up --> left
 		if (active_tsumo.dy == -1) {
 			active_tsumo.dy = 0;
