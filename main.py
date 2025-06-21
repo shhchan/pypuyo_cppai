@@ -64,6 +64,28 @@ def draw_field(screen, field):
 
 def draw_active_tsumo(screen, field):
     tsumo = field.get_active_tsumo()
+    # ゴースト位置の取得
+    ghost = field.get_ghost_position()
+    (gcx, gcy), (gsx, gsy) = ghost
+    # ゴーストぷよの描画（小さい半透明四角形、セル中央）
+    ghost_size = int(CELL_SIZE * 0.5)
+    ghost_offset = (CELL_SIZE - ghost_size) // 2
+    for dx, dy, color, gx, gy in [
+        (0, 0, tsumo.center, gcx, gcy),
+        (tsumo.dx, tsumo.dy, tsumo.sub, gsx, gsy),
+    ]:
+        color_name = CELLTYPE_MAP.get(int(color), None)
+        if color_name:
+            ghost_rect = pygame.Rect(
+                gx * CELL_SIZE + ghost_offset,
+                (gy + VISIBLE_TOP_MARGIN) * CELL_SIZE + ghost_offset,
+                ghost_size,
+                ghost_size
+            )
+            ghost_surface = pygame.Surface((ghost_size, ghost_size), pygame.SRCALPHA)
+            ghost_surface.fill(COLOR_MAP[color_name] + (150,))  # 透明度50
+            screen.blit(ghost_surface, ghost_rect)
+    # 操作中ぷよの描画（通常）
     for dx, dy, color in [
         (0, 0, tsumo.center),
         (tsumo.dx, tsumo.dy, tsumo.sub),
