@@ -21,7 +21,8 @@ FIELD_WIDTH = 6
 FIELD_HEIGHT = 14
 VISIBLE_TOP_MARGIN = 2  # 上部に2行分余裕を持たせて表示
 # ステータス表示用の高さを2行分確保（例: 80px）
-STATUS_BAR_HEIGHT = 80
+STATUS_BAR_HEIGHT = CELL_SIZE * 3 * 1.5  # スコア・連鎖数・モード表示用（1.5倍で余裕を持たせる）
+# 画面サイズの計算
 SCREEN_WIDTH = CELL_SIZE * FIELD_WIDTH
 SCREEN_HEIGHT = CELL_SIZE * (FIELD_HEIGHT + VISIBLE_TOP_MARGIN) + STATUS_BAR_HEIGHT
 FPS = 60
@@ -122,18 +123,19 @@ def draw_nexts(screen, field):
         label = font.render("NEXT" if i == 0 else "NEXT2", True, (255,255,255))
         screen.blit(label, (base_x, y_offset - 24))
 
-def draw_status(screen, field):
-    # スコアと連鎖数をフィールド下部に2行で表示
+def draw_status(screen, field, is_ai_mode):
+    # スコアと連鎖数をフィールド下部に2行で表示＋モード表示（CHAINの下に）
     font = pygame.font.SysFont(None, 32)
     score = field.get_score()
     chain = field.get_current_chain_size()
     score_label = font.render(f"SCORE: {score}", True, (255, 255, 255))
     chain_label = font.render(f"CHAIN: {chain}", True, (255, 255, 255))
+    mode_label = font.render(f"MODE: {'AI' if is_ai_mode else 'PLAYER'}", True, (255, 255, 0))
     base_x = 16
-    # ステータスバーの中央寄せ（フィールド下端＋余白）
     base_y = (FIELD_HEIGHT + VISIBLE_TOP_MARGIN) * CELL_SIZE + 16
     screen.blit(score_label, (base_x, base_y))
     screen.blit(chain_label, (base_x, base_y + 36))
+    screen.blit(mode_label, (base_x, base_y + 72))
 
 def main():
     pygame.init()
@@ -147,6 +149,9 @@ def main():
     field.generate_next_tsumo()  # ネクスト・ネクネク初期化
     field.generate_next_tsumo()  # 操作ぷよをセット
 
+    # ランダムAIのインスタンス生成
+    ai = puyo_core.create_random_AI()
+    is_ai_mode = False
     running = True
     while running:
         drop_flag = False
@@ -154,17 +159,39 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:
-                    field.move_active_tsumo_left()
-                elif event.key == pygame.K_d:
-                    field.move_active_tsumo_right()
-                elif event.key == pygame.K_w:
-                    drop_flag = True
-                elif event.key == pygame.K_DOWN:
-                    field.rotate_active_tsumo_left()
-                elif event.key == pygame.K_RIGHT:
-                    field.rotate_active_tsumo_right()
-        # 自動落下機能を削除
+                if event.key == pygame.K_TAB:
+                    is_ai_mode = not is_ai_mode  # モード切替
+                if not is_ai_mode:
+                    if event.key == pygame.K_a:
+                        field.move_active_tsumo_left()
+                    elif event.key == pygame.K_d:
+                        field.move_active_tsumo_right()
+                    elif event.key == pygame.K_w:
+                        drop_flag = True
+                    elif event.key == pygame.K_DOWN:
+                        field.rotate_active_tsumo_left()
+                    elif event.key == pygame.K_RIGHT:
+                        field.rotate_active_tsumo_right()
+        # AIモードの自動操作
+        if is_ai_mode:
+            move = ai.decide(field)
+            # rotation: 0=上, 1=右, 2=下, 3=左
+            for _ in range(move.rotation):
+                field.rotate_active_tsumo_right()
+                pygame.time.wait(100)  # 回転ごとに少し待つ
+            # x座標を合わせる（最大FIELD_WIDTH回まで）
+            max_move = FIELD_WIDTH
+            move_count = 0
+            while field.get_active_tsumo().x < move.target_x and move_count < max_move:
+                field.move_active_tsumo_right()
+                move_count += 1
+                pygame.time.wait(100)  # 移動ごとに少し待つ
+            while field.get_active_tsumo().x > move.target_x and move_count < max_move:
+                field.move_active_tsumo_left()
+                move_count += 1
+                pygame.time.wait(100)  # 移動ごとに少し待つ
+            drop_flag = True
+        # 落下処理
         if drop_flag:
             field.drop_active_tsumo()
             chain_count = 0  # 連鎖数を初期化
@@ -183,7 +210,7 @@ def main():
                 screen.fill((0, 0, 0))
                 draw_field(screen, field)
                 draw_nexts(screen, field)
-                draw_status(screen, field)
+                draw_status(screen, field, is_ai_mode)
                 pygame.display.flip()
                 pygame.time.wait(800)  # 400ms待機
             field.generate_next_tsumo()  # 操作ぷよ・ネクスト・ネクネクをC++側で更新
@@ -193,7 +220,7 @@ def main():
         draw_field(screen, field)
         draw_active_tsumo(screen, field)
         draw_nexts(screen, field)
-        draw_status(screen, field)
+        draw_status(screen, field, is_ai_mode)
         pygame.display.flip()
         clock.tick(FPS)
     pygame.quit()
