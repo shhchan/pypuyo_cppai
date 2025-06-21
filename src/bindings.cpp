@@ -54,6 +54,7 @@ PYBIND11_MODULE(puyo_core, m) {
     .def_readonly("y", &Field::ActiveTsumo::y)
     .def_readonly("dx", &Field::ActiveTsumo::dx)
     .def_readonly("dy", &Field::ActiveTsumo::dy)
+    .def_readonly("rotation", &Field::ActiveTsumo::rotation)
     .def_readonly("center", &Field::ActiveTsumo::center)
     .def_readonly("sub", &Field::ActiveTsumo::sub)
     .def("__repr__", [](const Field::ActiveTsumo &tsumo) {
@@ -61,6 +62,7 @@ PYBIND11_MODULE(puyo_core, m) {
         + " y=" + std::to_string(tsumo.y)
         + " dx=" + std::to_string(tsumo.dx)
         + " dy=" + std::to_string(tsumo.dy)
+        + " rotation=" + std::to_string(tsumo.rotation)
         + " center=" + std::to_string(static_cast<int>(tsumo.center))
         + " sub=" + std::to_string(static_cast<int>(tsumo.sub)) + ">";
     });
@@ -71,7 +73,7 @@ PYBIND11_MODULE(puyo_core, m) {
     .def("set_cell", &Field::set_cell, py::arg("x"), py::arg("y"), py::arg("type"))
     .def("get_cell", &Field::get_cell, py::arg("x"), py::arg("y"))
     .def("set_next_tsumos", &Field::set_next_tsumos, py::arg("next1"), py::arg("next2"))
-    .def("set_active_tsumo", &Field::set_active_tsumo, py::arg("center"), py::arg("sub"), py::arg("x") = 2, py::arg("y") = -1, py::arg("dx") = 0, py::arg("dy") = -1)
+    .def("set_active_tsumo", &Field::set_active_tsumo, py::arg("center"), py::arg("sub"), py::arg("x") = 2, py::arg("y") = -1, py::arg("dx") = 0, py::arg("dy") = -1, py::arg("rotation") = 0)
     .def("move_active_tsumo_left", &Field::move_active_tsumo_left)
     .def("move_active_tsumo_right", &Field::move_active_tsumo_right)
     .def("rotate_active_tsumo_left", &Field::rotate_active_tsumo_left)
@@ -91,6 +93,7 @@ PYBIND11_MODULE(puyo_core, m) {
     .def("get_grid_cell", &Field::get_grid_cell, py::arg("x"), py::arg("y"))
     .def("get_active_tsumo", &Field::get_active_tsumo)
     .def("get_next_tsumos", &Field::get_next_tsumos)
+    .def("can_place", &Field::can_place, py::arg("x"), py::arg("r"))
     .def("__repr__", [](const Field &field) {
       return "<Field height=" + std::to_string(field.get_height())
         + " width=" + std::to_string(field.get_width()) + ">";

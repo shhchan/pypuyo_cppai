@@ -175,7 +175,7 @@ def main():
                     elif event.key == pygame.K_d:
                         field.move_active_tsumo_right()
                     elif event.key == pygame.K_w:
-                        drop_flag = True
+                        drop_flag = field.can_place(field.get_active_tsumo().x, field.get_active_tsumo().rotation)
                     elif event.key == pygame.K_DOWN:
                         field.rotate_active_tsumo_left()
                     elif event.key == pygame.K_RIGHT:

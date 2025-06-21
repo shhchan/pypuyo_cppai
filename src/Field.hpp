@@ -16,6 +16,7 @@ namespace puyo {
 		struct ActiveTsumo {
 			int x, y;
 			int dx, dy;
+			int rotation;
 			CellType center, sub;
 		} active_tsumo;
 		int score;
@@ -26,7 +27,7 @@ namespace puyo {
 		CellType get_cell(int x, int y) const;
 
 		void set_next_tsumos(const std::pair<CellType, CellType>&, const std::pair<CellType, CellType>&);
-		void set_active_tsumo(CellType center, CellType sub, int x = 2, int y = -1, int dx = 0, int dy = -1);
+		void set_active_tsumo(CellType center, CellType sub, int x = 2, int y = -1, int dx = 0, int dy = -1, int rotation = 0);
 		void move_active_tsumo_left();
 		void move_active_tsumo_right();
 		void rotate_active_tsumo_left();

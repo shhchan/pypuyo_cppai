@@ -16,7 +16,7 @@ namespace puyo {
 			std::make_pair(CellType::EMPTY, CellType::EMPTY),
 			std::make_pair(CellType::EMPTY, CellType::EMPTY)
 		},
-		active_tsumo{ 2, -1, 0, -1, CellType::EMPTY, CellType::EMPTY },
+		active_tsumo{ 2, -1, 0, -1, 0, CellType::EMPTY, CellType::EMPTY },
 		score(0),
 		current_chain_size(0),
 		game_over(false) {
@@ -44,8 +44,8 @@ namespace puyo {
 		next_tsumos[1] = next2;
 	}
 
-	void Field::set_active_tsumo(CellType center, CellType sub, int x, int y, int dx, int dy) {
-		active_tsumo = { x, y, dx, dy, center, sub };
+	void Field::set_active_tsumo(CellType center, CellType sub, int x, int y, int dx, int dy, int rotation) {
+		active_tsumo = { x, y, dx, dy, rotation, center, sub };
 	}
 
 	void Field::move_active_tsumo_left(void) {
@@ -61,6 +61,7 @@ namespace puyo {
 	}
 
 	void Field::rotate_active_tsumo_left(void) {
+		active_tsumo.rotation = (active_tsumo.rotation + 1) % 4;
 		// up --> left
 		if (active_tsumo.dy == -1) {
 			active_tsumo.dy = 0;
@@ -94,6 +95,7 @@ namespace puyo {
 	}
 
 	void Field::rotate_active_tsumo_right(void) {
+		active_tsumo.rotation = (active_tsumo.rotation + 1) % 4;
 		// up --> right
 		if (active_tsumo.dy == -1) {
 			active_tsumo.dy = 0;
