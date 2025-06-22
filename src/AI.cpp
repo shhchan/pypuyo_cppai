@@ -1,12 +1,19 @@
 #include "AI.hpp"
-#include <cstdlib>
+#include "RandomAI.hpp"
 #include <vector>
-#include <array>
-#include <stdexcept>
-#include <iostream>
 
 namespace puyo {
 	// AI基底クラスのデフォルト実装
+
+	AI* AI::create(AIType type) {
+		switch (type) {
+			case AIType::Random:
+				return new RandomAI();
+			default:
+				return nullptr; // 未実装のAIタイプ
+		}
+	}
+
 	bool AI::can_place(const Field& field, int x, int r) const {
 		return field.can_place(x, r);
 	}
@@ -22,28 +29,5 @@ namespace puyo {
 			}
 		}
 		return moves;
-	}
-
-	class RandomAI : public AI {
-	public:
-		Move decide(const Field& field) override {
-			auto moves = is_valid_move(field);
-			// debug: moves の内容を表示
-			std::cout << "Valid moves found: " << moves.size() << std::endl;
-			for (const auto& move : moves) {
-				std::cout << "(x=" << move.target_x << ", r=" << move.rotation << "), ";
-			}
-			std::cout << std::endl;
-			// ぷよが配置できる場所がない場合はエラー
-			if (moves.empty()) {
-				throw std::runtime_error("No valid moves available.");
-			}
-			int idx = std::rand() % moves.size();
-			return moves[idx];
-		}
-	};
-
-	AI* create_random_AI() {
-		return new RandomAI();
 	}
 }

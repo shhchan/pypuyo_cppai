@@ -185,7 +185,7 @@ def main():
     field.generate_next_tsumo()  # 操作ぷよをセット
 
     # ランダムAIのインスタンス生成
-    ai = puyo_core.create_random_AI()
+    ai = puyo_core.AI.create(puyo_core.AIType.RANDOM)
     is_ai_mode = False
     running = True
     while running:

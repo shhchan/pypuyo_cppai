@@ -26,6 +26,11 @@ PYBIND11_MODULE(puyo_core, m) {
     .value("GARBAGE", CellType::GARBAGE)
     .export_values();
 
+  // --- AIType enum ---
+  py::enum_<AIType>(m, "AIType")
+    .value("RANDOM", AIType::Random)
+    .export_values();
+
   // --- ChainInfo struct ---
   py::class_<ChainInfo>(m, "ChainInfo")
     .def(py::init<>())
@@ -111,8 +116,10 @@ PYBIND11_MODULE(puyo_core, m) {
 
     // AI class and factory
     py::class_<AI, std::shared_ptr<AI>>(m, "AI")
-      .def("decide", &AI::decide, py::arg("field"));
-
-    m.def("create_random_AI", &puyo::create_random_AI, py::return_value_policy::take_ownership, 
-          "Create a random AI instance that makes random decisions.");
+      .def("decide", &AI::decide, py::arg("field"))
+      .def_static("create", &AI::create, py::arg("type"), py::return_value_policy::take_ownership,
+           "Create an AI instance of the specified type.")
+      .def("__repr__", [](const AI &ai) {
+        return "<AI>";
+      });
 }
