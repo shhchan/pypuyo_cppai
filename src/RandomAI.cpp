@@ -2,8 +2,8 @@
 #include <iostream>
 
 namespace puyo {
-    Move RandomAI::decide(const Field& field) {
-        auto moves = is_valid_move(field);
+    Move RandomAI::decide(const AIContext& ctx) {
+        auto moves = is_valid_move(ctx.field);
         // debug: moves の内容を表示
         std::cout << "Valid moves found: " << moves.size() << std::endl;
         std::cout << "(x, r) = ";

@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdint>
 #include "Field.hpp"
+#include "AIContext.hpp"
 
 namespace puyo {
 	struct Move {
@@ -20,7 +21,7 @@ namespace puyo {
 	public:
 		static AI* create(AIType type);
 		virtual ~AI() = default;
-		virtual Move decide(const Field& field) = 0;
+		virtual Move decide(const AIContext& ctx) = 0;
 		// 配置可能なMoveのリストを返す
 		virtual std::vector<Move> is_valid_move(const Field& field) const;
 	protected:

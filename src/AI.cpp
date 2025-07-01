@@ -1,6 +1,7 @@
 #include "AI.hpp"
 #include "RandomAI.hpp"
 #include <vector>
+#include "AIContext.hpp"
 
 namespace puyo {
 	// AI基底クラスのデフォルト実装

@@ -7,6 +7,7 @@
 #include "ChainInfo.hpp"
 #include "Field.hpp"
 #include "AI.hpp"
+#include "AIContext.hpp"
 
 namespace py = pybind11;
 using namespace puyo;
@@ -114,11 +115,19 @@ PYBIND11_MODULE(puyo_core, m) {
           + " rotation=" + std::to_string(move.rotation) + ">";
       });
 
+    // AIContext struct
+    py::class_<AIContext>(m, "AIContext")
+      .def(py::init<const Field&>());
+
     // AI class and factory
     py::class_<AI, std::shared_ptr<AI>>(m, "AI")
-      .def("decide", &AI::decide, py::arg("field"))
+      .def("decide", [](AI& self, const Field& field) {
+        AIContext ctx(field);
+        return self.decide(ctx);
+      }, py::arg("field"))
       .def_static("create", &AI::create, py::arg("type"), py::return_value_policy::take_ownership,
            "Create an AI instance of the specified type.")
+      .def("is_valid_move", &AI::is_valid_move, py::arg("field"))
       .def("__repr__", [](const AI &ai) {
         return "<AI>";
       });
