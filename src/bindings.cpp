@@ -29,6 +29,7 @@ PYBIND11_MODULE(puyo_core, m) {
   // --- AIType enum ---
   py::enum_<puyo::AIType>(m, "AIType")
     .value("RANDOM", puyo::AIType::Random)
+    .value("INIT_RULE_BASE", puyo::AIType::InitRuleBase)
     .export_values();
 
   // --- ChainInfo struct ---

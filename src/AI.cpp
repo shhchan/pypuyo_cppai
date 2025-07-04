@@ -1,5 +1,6 @@
 #include "AI.hpp"
 #include "RandomAI.hpp"
+#include "InitRuleBaseAI.hpp"
 #include <vector>
 #include "AIContext.hpp"
 
@@ -10,6 +11,8 @@ namespace puyo {
 		switch (type) {
 			case AIType::Random:
 				return new RandomAI();
+			case AIType::InitRuleBase:
+				return new InitRuleBaseAI();
 			default:
 				return nullptr; // 未実装のAIタイプ
 		}

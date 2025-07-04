@@ -11,6 +11,9 @@ sys.path.append(build_dir)
 # pybind11でビルドされたC++モジュールをインポート
 try:
     puyo_core = importlib.import_module('puyo_core')
+except Exception as e:
+    print(e)
+    sys.exit(1)
 except ImportError:
     print('puyo_core モジュールが見つかりません。ビルド済みか確認してください。')
     sys.exit(1)
@@ -69,25 +72,6 @@ def get_scale_and_offset(window_size):
 def draw_field(screen, field, scale, ox, oy):
     for y in range(FIELD_HEIGHT):
         for x in range(FIELD_WIDTH):
-            # 窒息点(3列目12段目, x=2, y=2)に赤いバツ印をセルいっぱいに描画
-            if x == 2 and y == 2:
-                cx = int(x * VIRTUAL_CELL_SIZE * scale) + ox
-                cy = int((y + VISIBLE_TOP_MARGIN) * VIRTUAL_CELL_SIZE * scale) + oy
-                cell_size = int(VIRTUAL_CELL_SIZE * scale)
-                margin = int(cell_size * 0.18)
-                pygame.draw.line(
-                    screen, (255, 0, 0),
-                    (cx + margin, cy + margin),
-                    (cx + cell_size - margin, cy + cell_size - margin),
-                    width=max(2, cell_size // 8)
-                )
-                pygame.draw.line(
-                    screen, (255, 0, 0),
-                    (cx + cell_size - margin, cy + margin),
-                    (cx + margin, cy + cell_size - margin),
-                    width=max(2, cell_size // 8)
-                )
-                continue
             cell = field.get_cell(x, y)
             color_name = CELLTYPE_MAP.get(int(cell), None)
             if color_name:
@@ -98,6 +82,25 @@ def draw_field(screen, field, scale, ox, oy):
                     int(VIRTUAL_CELL_SIZE * scale)
                 )
                 pygame.draw.rect(screen, COLOR_MAP[color_name], rect)
+            # 窒息点(3列目12段目, x=2, y=2)に赤いバツ印をセルいっぱいに描画
+            if x == 2 and y == 2:
+                cx = int(x * VIRTUAL_CELL_SIZE * scale) + ox
+                cy = int((y + VISIBLE_TOP_MARGIN) * VIRTUAL_CELL_SIZE * scale) + oy
+                cell_size = int(VIRTUAL_CELL_SIZE * scale)
+                margin = int(cell_size * 0.18)
+                pygame.draw.line(
+                    screen, (255/3*2, 0, 0),
+                    (cx + margin, cy + margin),
+                    (cx + cell_size - margin, cy + cell_size - margin),
+                    width=max(2, cell_size // 8)
+                )
+                pygame.draw.line(
+                    screen, (255/3*2, 0, 0),
+                    (cx + cell_size - margin, cy + margin),
+                    (cx + margin, cy + cell_size - margin),
+                    width=max(2, cell_size // 8)
+                )
+                continue
 
 def draw_active_tsumo(screen, field, scale, ox, oy):
     tsumo = field.get_active_tsumo()
@@ -165,21 +168,22 @@ def draw_nexts(screen, field, scale, ox, oy):
         label = font.render("NEXT" if i == 0 else "NEXT2", True, (255,255,255))
         screen.blit(label, (base_x, y_offset - int(24 * scale)))
 
-def draw_status(screen, field, is_ai_mode, scale, ox, oy):
-    # スコアと連鎖数をフィールド下部に2行で表示＋モード表示（CHAINの下に）
+def draw_status(screen, field, ai_mode_idx, scale, ox, oy):
+    # スコアと連鎖数をフィールド下部に2行で表示＋モード表示（AI名も表示）
     font = pygame.font.SysFont(None, int(32 * scale))
     score = field.get_score()
     chain = field.get_current_chain_size()
     score_label = font.render(f"SCORE: {score}", True, (255, 255, 255))
     chain_label = font.render(f"CHAIN: {chain}", True, (255, 255, 255))
-    mode_label = font.render(f"MODE: {'AI' if is_ai_mode else 'PLAYER'}", True, (255, 255, 0))
+    mode_name = AI_MODES[ai_mode_idx][0]
+    mode_label = font.render(f"MODE: {mode_name}", True, (255, 255, 0))
     base_x = ox + int(16 * scale)
     base_y = oy + int((FIELD_HEIGHT + VISIBLE_TOP_MARGIN) * VIRTUAL_CELL_SIZE * scale) + int(16 * scale)
     screen.blit(score_label, (base_x, base_y))
     screen.blit(chain_label, (base_x, base_y + int(36 * scale)))
     screen.blit(mode_label, (base_x, base_y + int(72 * scale)))
 
-def draw(screen, field, is_ai_mode, targets=None):
+def draw(screen, field, is_ai_mode, ai_mode_idx=0, targets=None):
     win_size = screen.get_size()
     scale, ox, oy = get_scale_and_offset(win_size)
     screen.fill((0, 0, 0))
@@ -187,7 +191,7 @@ def draw(screen, field, is_ai_mode, targets=None):
         "field": lambda: draw_field(screen, field, scale, ox, oy),
         "active_tsumo": lambda: draw_active_tsumo(screen, field, scale, ox, oy),
         "nexts": lambda: draw_nexts(screen, field, scale, ox, oy),
-        "status": lambda: draw_status(screen, field, is_ai_mode, scale, ox, oy),
+        "status": lambda: draw_status(screen, field, ai_mode_idx, scale, ox, oy),
     }
     if targets is None:
         for func in draw_funcs.values():
@@ -198,6 +202,47 @@ def draw(screen, field, is_ai_mode, targets=None):
                 draw_funcs[key]()
     pygame.display.flip()
 
+AI_MODES = [
+    ("PLAYER", None),
+    ("RANDOM AI", lambda: puyo_core.AI.create(puyo_core.AIType.RANDOM)),
+    ("INIT RULE BASE AI", lambda: puyo_core.AI.create(puyo_core.AIType.INIT_RULE_BASE)),
+]
+
+# モード選択UI描画
+# フィールドを半透明で重ねて表示
+
+def draw_mode_select(screen, selected_idx, field=None, is_ai_mode=False):
+    # まずフィールドを描画（サーフェスに描画してから半透明化）
+    if field is not None:
+        # 1回だけ暗くする（毎回新しいsurfaceを作る）
+        field_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        draw(field_surface, field, is_ai_mode, selected_idx)
+        # 半透明化（アルファ値180/255）
+        overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((0,0,0,75))  # 薄暗くする
+        field_surface.blit(overlay, (0,0))
+        screen.blit(field_surface, (0,0))
+    else:
+        screen.fill((0, 0, 0))
+    font = pygame.font.SysFont(None, 48)
+    small_font = pygame.font.SysFont(None, 28)
+    win_size = screen.get_size()
+    title = font.render("Select Mode", True, (255,255,0))
+    screen.blit(title, (win_size[0]//2 - title.get_width()//2, 80))
+    for i, (name, _) in enumerate(AI_MODES):
+        color = (255,255,255) if i != selected_idx else (0,255,0)
+        label = font.render(name, True, color)
+        x = win_size[0]//2 - label.get_width()//2
+        y = 180 + i*70
+        screen.blit(label, (x, y))
+        # 選択中の行だけ矢印を表示
+        if i == selected_idx:
+            marker = small_font.render("-->", True, (0,255,0))
+            screen.blit(marker, (x - 60, y + 10))
+    info = small_font.render("Tab: Next  Enter: Select", True, (200,200,200))
+    screen.blit(info, (win_size[0]//2 - info.get_width()//2, 180 + len(AI_MODES)*70 + 20))
+    pygame.display.flip()
+
 def main():
     pygame.init()
     # デフォルトウィンドウサイズを大きめに
@@ -206,89 +251,106 @@ def main():
     pygame.display.set_caption('PuyoPuyo')
     clock = pygame.time.Clock()
     field = puyo_core.Field(FIELD_HEIGHT, FIELD_WIDTH)
+    field.generate_next_tsumo()
+    field.generate_next_tsumo()
 
-    # C++側のgenerate_next_tsumoでネクスト・ネクネク・操作ぷよを管理
-    field.generate_next_tsumo()  # ネクスト・ネクネク初期化
-    field.generate_next_tsumo()  # 操作ぷよをセット
-
-    # ランダムAIのインスタンス生成
-    ai = puyo_core.AI.create(puyo_core.AIType.RANDOM)
+    # --- ここからAIインスタンス管理の改修 ---
+    ai_instances = [None] * len(AI_MODES)
+    ai_mode_idx = 0  # 0: player, 1: random, 2: init rule base
     is_ai_mode = False
     running = True
+    mode_selecting = False
+    selected_mode_idx = 0
+    # --- ここまで ---
+
     while running:
         drop_flag = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.VIDEORESIZE:
-                # ウィンドウリサイズ時に再設定
                 screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_TAB:
-                    is_ai_mode = not is_ai_mode  # モード切替
-                if not is_ai_mode:
-                    if event.key == pygame.K_a:
-                        field.move_active_tsumo_left()
-                    elif event.key == pygame.K_d:
-                        field.move_active_tsumo_right()
-                    elif event.key == pygame.K_w:
-                        drop_flag = field.can_place(field.get_active_tsumo().x, field.get_active_tsumo().rotation)
-                    elif event.key == pygame.K_DOWN:
-                        field.rotate_active_tsumo_left()
-                    elif event.key == pygame.K_RIGHT:
-                        field.rotate_active_tsumo_right()
-        # AIモードの自動操作
+                if mode_selecting:
+                    if event.key == pygame.K_TAB:
+                        selected_mode_idx = (selected_mode_idx + 1) % len(AI_MODES)
+                        draw_mode_select(screen, selected_mode_idx, field, is_ai_mode)
+                    elif event.key == pygame.K_RETURN:
+                        ai_mode_idx = selected_mode_idx
+                        is_ai_mode = ai_mode_idx != 0
+                        mode_selecting = False
+                        if ai_mode_idx != 0 and ai_instances[ai_mode_idx] is None:
+                            ai_instances[ai_mode_idx] = AI_MODES[ai_mode_idx][1]()
+                        draw(screen, field, is_ai_mode, ai_mode_idx)
+                else:
+                    if event.key == pygame.K_TAB:
+                        mode_selecting = True
+                        selected_mode_idx = ai_mode_idx
+                        draw_mode_select(screen, selected_mode_idx, field, is_ai_mode)
+                        continue
+                    if not is_ai_mode:
+                        if event.key == pygame.K_a:
+                            field.move_active_tsumo_left()
+                        elif event.key == pygame.K_d:
+                            field.move_active_tsumo_right()
+                        elif event.key == pygame.K_w:
+                            drop_flag = field.can_place(field.get_active_tsumo().x, field.get_active_tsumo().rotation)
+                        elif event.key == pygame.K_DOWN:
+                            field.rotate_active_tsumo_left()
+                        elif event.key == pygame.K_RIGHT:
+                            field.rotate_active_tsumo_right()
+        if mode_selecting:
+            pygame.time.wait(30)
+            continue
         if is_ai_mode:
+            ai = ai_instances[ai_mode_idx]
             move = ai.decide(field)
-            # rotation: 0=上, 1=右, 2=下, 3=左
             for _ in range(move.rotation):
                 field.rotate_active_tsumo_right()
-                draw(screen, field, is_ai_mode)
+                draw(screen, field, is_ai_mode, ai_mode_idx)
                 pygame.time.wait(100)
-            # x座標を合わせる（最大FIELD_WIDTH回まで）
             max_move = FIELD_WIDTH
             move_count = 0
             while field.get_active_tsumo().x < move.target_x and move_count < max_move:
                 field.move_active_tsumo_right()
                 move_count += 1
-                draw(screen, field, is_ai_mode)
+                draw(screen, field, is_ai_mode, ai_mode_idx)
                 pygame.time.wait(100)
             while field.get_active_tsumo().x > move.target_x and move_count < max_move:
                 field.move_active_tsumo_left()
                 move_count += 1
-                draw(screen, field, is_ai_mode)
+                draw(screen, field, is_ai_mode, ai_mode_idx)
                 pygame.time.wait(100)
             drop_flag = True
-        # 落下処理
         if drop_flag:
             field.drop_active_tsumo()
-            chain_count = 0  # 連鎖数を初期化
-            # 1連鎖ずつ描画しながら連鎖処理
+            chain_count = 0
             while True:
                 chain_info = field.analyze_and_erase_chains(chain_count)
                 if not getattr(chain_info, 'erased', False):
                     break
-                # 連鎖が発生した場合は連鎖数を更新
                 chain_count += 1
                 field.set_current_chain_size(chain_count)
-                # スコア計算
                 field.update_score(chain_info)
                 field.apply_gravity()
-                draw(screen, field, is_ai_mode, targets=["field", "nexts", "status"])
+                draw(screen, field, is_ai_mode, ai_mode_idx, targets=["field", "nexts", "status"])
                 pygame.time.wait(800)
-            field.generate_next_tsumo()  # 操作ぷよ・ネクスト・ネクネクをC++側で更新
-        # 連鎖が終了したら field の連鎖数をリセット
+            field.generate_next_tsumo()
         field.set_current_chain_size(0)
-        draw(screen, field, is_ai_mode)
-        # 窒息判定
+        draw(screen, field, is_ai_mode, ai_mode_idx)
         if field.is_game_over():
-            # シンプルなゲームオーバー画面を3行で表示
+            # 背景にフィールドを半透明で描画
+            field_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+            draw(field_surface, field, is_ai_mode, ai_mode_idx)
+            overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+            overlay.fill((0,0,0,120))  # ゲームオーバー時はやや濃いめ
+            field_surface.blit(overlay, (0,0))
+            screen.blit(field_surface, (0,0))
             font = pygame.font.SysFont(None, 36)
             messages = ["GAME OVER!", "R: Retry", "Q: Quit"]
-            screen.fill((0, 0, 0))
             win_size = screen.get_size()
             scale, ox, oy = get_scale_and_offset(win_size)
-            total_height = sum(font.size(msg)[1] for msg in messages) + 16  # 行間8px
+            total_height = sum(font.size(msg)[1] for msg in messages) + 16
             start_y = win_size[1] // 2 - total_height // 2
             for i, msg in enumerate(messages):
                 text_surface = font.render(msg, True, (255, 0, 0))
@@ -306,9 +368,10 @@ def main():
                         if event.key == pygame.K_r:
                             field = puyo_core.Field(FIELD_HEIGHT, FIELD_WIDTH)
                             field.generate_next_tsumo()
-                            field.generate_next_tsumo()  # 操作ぷよをセット
+                            field.generate_next_tsumo()
                             waiting_for_retry = False
                             is_ai_mode = False
+                            ai_mode_idx = 0
                         elif event.key == pygame.K_q:
                             waiting_for_retry = False
                             running = False

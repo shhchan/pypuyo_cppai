@@ -15,6 +15,7 @@ namespace puyo {
 
 	enum class AIType {
 		Random,
+		InitRuleBase,
 	};
 
 	class AI {

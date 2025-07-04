@@ -23,7 +23,7 @@ set(SOURCES
 find_package(pybind11 CONFIG REQUIRED)
 
 # Pythonモジュールとしてビルド
-pybind11_add_module(puyo_core src/bindings.cpp src/AI.cpp src/RandomAI.cpp src/Field.cpp)
+pybind11_add_module(puyo_core src/bindings.cpp src/AI.cpp src/RandomAI.cpp src/Field.cpp src/InitRuleBaseAI.cpp)
 target_include_directories(puyo_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # 静的ライブラリを作成（必要なら残す）
