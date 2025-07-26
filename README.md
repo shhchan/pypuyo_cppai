@@ -114,3 +114,7 @@ python tests/test_puyo_core.py
     ```bash
     python main.py
     ```
+
+## 備忘録
+
+- Visual Studio Code で `ディストリビューションを使用して WSL に接続...` を選択し，Ubuntu を起動することで作業再開する
