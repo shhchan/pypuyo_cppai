@@ -445,7 +445,7 @@ namespace puyo {
 
 	bool Field::can_place(int x, int r) const {
 		// ぷよの高さ情報を取得
-		uint8_t heights[6] = {};
+		int heights[6] = { 0 };
 		for (int i = 0; i < 6; ++i) {
 			heights[i] = 0;
 			for (int y = get_height() - 1; y > 0; --y) {
@@ -453,10 +453,11 @@ namespace puyo {
 			}
 		}
 		// 14段目の情報（bit列）
-		uint8_t row14 = 0;
+		int row14 = 0;
 		for (int i = 0; i < 6; ++i) {
-			if (heights[i] == 14) row14 |= (1 << i);
+			if (static_cast<int>(get_cell(i, 0)) != 0) row14 |= (1 << i);
 		}
+		std::cout << std::endl;
 		// 回転方向のオフセット
 		static const int dx[4] = {0, 1, 0, -1}; // UP, RIGHT, DOWN, LEFT
 		static const int dy[4] = {-1, 0, 1, 0};
@@ -464,10 +465,14 @@ namespace puyo {
 		int dir = r;
 		// 軸ぷよが14段目
 		if (heights[x] + (dir == 2) > 12) return false;
+		// 子ぷよがフィールド外
 		int child_x = x + dx[dir];
 		if (child_x < 0 || child_x >= 6) return false;
+		// 14段目に既にぷよが存在するときに14段目に子ぷよを設置できない
 		int child_y = heights[child_x] + (dir == 0);
-		if (child_y == 13 && ((row14 >> child_x) & 1)) return false;
+		if (child_y == 13 && ((row14 >> child_x) & 1)) {
+			return false;
+		}
 		// チェックリスト
 		static const int check[6][4] = {
 			{1, 0, -1, -1}, {1, -1, -1, -1}, {-1, -1, -1, -1}, {3, -1, -1, -1}, {3, 4, -1, -1}, {3, 4, 5, -1}
