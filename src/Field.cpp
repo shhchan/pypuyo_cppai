@@ -457,7 +457,6 @@ namespace puyo {
 		for (int i = 0; i < 6; ++i) {
 			if (static_cast<int>(get_cell(i, 0)) != 0) row14 |= (1 << i);
 		}
-		std::cout << std::endl;
 		// 回転方向のオフセット
 		static const int dx[4] = {0, 1, 0, -1}; // UP, RIGHT, DOWN, LEFT
 		static const int dy[4] = {-1, 0, 1, 0};
